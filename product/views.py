@@ -6,41 +6,44 @@ from django.db.models.functions import Concat, Cast, Coalesce
 from product.models import *
 
 
+from django.db.models import Count, F, FloatField
+from django.db.models.functions import Coalesce
+from django.shortcuts import render
+from .models import Product, Category
+
 def index(request):
     context = {
-        "category": Category.objects.annotate(
-            product_count = Count("products")
-        ),
-        "product": Product.objects.annotate(
-            tax= Coalesce(F("tax_price"), 0, output_field=FloatField()),
-            discount_p=Coalesce(F("discount__name"),0, output_field=FloatField())
-            ).annotate(
-                total_price = F("price") *(1- F("discount_p") / 100) + F("tax")
-            ),
-
-            # total_price=ExpressionWrapper(
-            #     # (F("price") * (1 - Coalesce(F("discount__name"), 0) / 100)) + Coalesce(F("tax_price"), 0),
-            #     # output_field=FloatField()
-            # )
         
-        # "product_discount": Product.objects.annotate(
-        #  discount_price=ExpressionWrapper(
-        #             (F("price")-F("discount_price"))
-        #         )
-        #     )
+        "category": Category.objects.annotate(
+            product_count=Count("products")
+        ),
 
+        "product": Product.objects.annotate(
+            tax=Coalesce(F("tax_price"), 0, output_field=FloatField()),
+            discount_p=Coalesce(F("discount__name"), 0, output_field=FloatField())
+        ).annotate(
+            total_price=F("price") * (1 - F("discount_p") / 100) + F("tax")
+        ),
+
+     
         "discount_products": Product.objects.annotate(
-            tax= Coalesce(F("tax_price"), 0, output_field=FloatField()),
-            discount_p=Coalesce(F("discount__name"),0, output_field=FloatField())
-            ).annotate(
-                total_price = F("price") *(1- F("discount_p") / 100) + F("tax")
-            ).filter(discount__name__gt=0),
-      
-    }
-    
+            tax=Coalesce(F("tax_price"), 0, output_field=FloatField()),
+            discount_p=Coalesce(F("discount__name"), 0, output_field=FloatField())
+        ).annotate(
+            total_price=F("price") * (1 - F("discount_p") / 100) + F("tax")
+        ).filter(discount__name__gt=0),
 
+        "latest_products": Product.objects.annotate(
+           tax=Coalesce(F("tax_price"), 0, output_field=FloatField()),
+             discount_p=Coalesce(F("discount__name"), 0, output_field=FloatField())
+            ).annotate(
+            total_price=Coalesce(F("price") * (1 - F("discount_p") / 100) + F("tax"),0, 
+                                 output_field=FloatField())
+        ).order_by('-time_create')[:5]
+    }
     print(context)
     return render(request, "product/index.html", context)
+
 
 def allProducts(request):
     return render(request, "product/shop-grid-3.html")
