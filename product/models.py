@@ -3,6 +3,15 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 # Create your models here.
 
+# class SocialMedia(models.Model):
+#     facebook = models.URLField(blank=True, null=True)
+#     instagram = models.URLField(blank=True, null=True)
+#     linkedin = models.URLField(blank=True, null=True)
+#     youtube = models.URLField(blank=True, null=True)
+
+#     class Meta:
+#         abstract = True
+
 # GENDER = (
 #     ("male", "male"),
 #     ("female", "female"),
@@ -60,6 +69,8 @@ class Author(models.Model):
     def __str__(self):
         return self.name
 
+class AuthorProfile(Author):
+    bio = models.TextField(blank=True, null=True)
 class Product(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="products")
     name = models.CharField(max_length=300, verbose_name="Ad")
@@ -77,6 +88,8 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+
     
 class SalesProduct(Product):
 
